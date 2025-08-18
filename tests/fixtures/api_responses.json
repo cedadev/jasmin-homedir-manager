@@ -1,0 +1,55 @@
+{
+  "users_list_training": [
+    {
+      "username": "train001",
+      "url": "https://test.example.com/api/users/train001/"
+    },
+    {
+      "username": "train002", 
+      "url": "https://test.example.com/api/users/train002/"
+    }
+  ],
+  "users_list_single_training": [
+    {
+      "username": "train001",
+      "url": "https://test.example.com/api/users/train001/"
+    }
+  ],
+  "users_list_non_training": [
+    {
+      "username": "regularuser",
+      "url": "https://test.example.com/api/users/regularuser/"
+    }
+  ],
+  "user_detail_train001": {
+    "username": "train001",
+    "account": {
+      "homeDirectory": "/temp/home/users/train001"
+    }
+  },
+  "user_detail_train002": {
+    "username": "train002", 
+    "account": {
+      "homeDirectory": "/temp/home/users/train002"
+    }
+  },
+  "user_detail_regularuser": {
+    "username": "regularuser",
+    "account": {
+      "homeDirectory": "/temp/home/users/regularuser"
+    }
+  },
+  "user_detail_mismatched_home": {
+    "username": "train001",
+    "account": {
+      "homeDirectory": "/different/path/train001"
+    }
+  },
+  "user_detail_nonexistent_home": {
+    "username": "train001",
+    "account": {
+      "homeDirectory": "/temp/home/users/train001"
+    }
+  },
+  "empty_users_list": []
+}

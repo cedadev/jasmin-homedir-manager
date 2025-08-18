@@ -1,0 +1,8 @@
+client_id = "test_client_id"
+client_secret = "test_client_secret"
+scopes = ["test.scope.read", "test.scope.write"]
+token_endpoint = "https://test.example.com/oauth/token/"
+home_dir_folder = "/tmp/test_home"
+
+[data_endpoints]
+users = "https://test.example.com/api/v1/users/"
