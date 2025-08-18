@@ -37,6 +37,9 @@ def cli(ctx, settings_file, dry_run, careful):
         level=logging.INFO,
     )
 
+    # Reduce httpx log noise
+    logging.getLogger("httpx").setLevel(logging.ERROR)
+
     if dry_run:
         click.echo("DRY RUN MODE: No actual changes will be made")
 

@@ -39,16 +39,32 @@ class TrainingCleanupCommand(BaseCommand):
                 self.settings.home_dir_folder / user_detailed["username"]
             )
 
-            # Make sure this is a training account, and the home directory path is as expected.
-            if (
-                user["username"].startswith("train")
-                and home_directory == home_directory_constructed
-                and home_directory.is_dir()
-            ):
-                # Careful mode confirmation
-                if not self.confirm_user_cleanup(user, home_directory, self.careful):
-                    continue
-
+            # Check user is training account.
+            if not user["username"].startswith("train"):
+                self.logger.critical(
+                    "Did nothing for %s, since the username does not start with train.",
+                    user["username"],
+                )
+            # Check home path matches that expected.
+            elif home_directory != home_directory_constructed:
+                self.logger.error(
+                    "Home directory path check failed for %s. Home directory in LDAP (%s) did not match expected (%s)",
+                    user["username"],
+                    home_directory,
+                    home_directory_constructed,
+                )
+            # Check home directory is a directory.
+            elif not home_directory.is_dir():
+                self.logger.error(
+                    "Home directory did not exist for %s", user["username"]
+                )
+            # Check if careful mode is enabled and confirm with user.
+            elif not self.confirm_user_cleanup(user, home_directory, self.careful):
+                self.logger.error(
+                    "Careful mode enabled and user asked to skip %s", user["username"]
+                )
+            else:
+                # This is the main logic.
                 self.logger.info("Removing home directory %s", home_directory)
 
                 if self.dry_run:

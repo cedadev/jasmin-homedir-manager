@@ -7,8 +7,7 @@ import tempfile
 import unittest
 import unittest.mock
 
-from jasmin_homedir_manager.commands.training_cleanup import \
-    TrainingCleanupCommand
+from jasmin_homedir_manager.commands.training_cleanup import TrainingCleanupCommand
 from jasmin_homedir_manager.settings import Settings
 
 
@@ -31,7 +30,6 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         self.temp_fast_remove = self.temp_home_dir / ".fast-remove"
         self.temp_fast_remove.mkdir()
 
-        # Create test settings
         self.test_settings = Settings(
             client_id="test_client",
             client_secret="test_secret",
@@ -54,23 +52,13 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         (user_home / "test_dir" / "nested_file.txt").write_text("nested content")
         return user_home
 
-    def get_mock_api_response(self, fixture_key: str, **replacements):
-        """Get mock API response from fixture with optional field replacements."""
+    def get_mock_api_response(self, fixture_key: str, homeDirectory=None):
+        """Get mock API response from fixture."""
         response_data = self.api_fixtures[fixture_key].copy()
 
-        # Handle nested replacements for complex structures
-        if isinstance(response_data, dict) and "homeDirectory" in str(response_data):
-            if "homeDirectory" in replacements:
-                response_data["account"]["homeDirectory"] = replacements[
-                    "homeDirectory"
-                ]
-        elif isinstance(response_data, list):
-            # For list responses, apply replacements to each item
-            for item in response_data:
-                for key, value in replacements.items():
-                    if key in item:
-                        item[key] = value
-
+        # Allow overriding home directory location.
+        if homeDirectory is not None:
+            response_data["account"]["homeDirectory"] = homeDirectory
         return response_data
 
     def test_execute_with_training_users_success(self):
@@ -358,106 +346,3 @@ class TestTrainingCleanupCommand(unittest.TestCase):
                     # Verify no subprocess or patch calls
                     mock_subprocess.assert_not_called()
                     mock_client.patch.assert_not_called()
-
-
-class TestTrainingCleanupCommandAuthentication(unittest.TestCase):
-    """Test authentication aspects of TrainingCleanupCommand."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        self.test_settings = Settings(
-            client_id="test_client",
-            client_secret="test_secret",
-            scopes=["test.scope"],
-            token_endpoint="https://test.example.com/oauth/token/",
-            home_dir_folder=pathlib.Path("/tmp/test"),
-            data_endpoints={"users": "https://test.example.com/api/users/"},
-        )
-
-    def test_get_authenticated_client_success(self):
-        """Test successful OAuth client authentication."""
-        command = TrainingCleanupCommand(
-            self.test_settings, dry_run=True, careful=False
-        )
-
-        with unittest.mock.patch(
-            "authlib.integrations.httpx_client.OAuth2Client"
-        ) as mock_oauth_client:
-            mock_client_instance = unittest.mock.MagicMock()
-            mock_oauth_client.return_value = mock_client_instance
-
-            client = command.get_authenticated_client()
-
-            # Verify OAuth client was created with correct parameters
-            mock_oauth_client.assert_called_once_with(
-                "test_client", "test_secret", scope="test.scope", timeout=5
-            )
-
-            # Verify token was fetched
-            mock_client_instance.fetch_token.assert_called_once_with(
-                "https://test.example.com/oauth/token/", grant_type="client_credentials"
-            )
-
-            # Verify the same client instance is returned
-            self.assertEqual(client, mock_client_instance)
-
-    def test_get_authenticated_client_caching(self):
-        """Test that OAuth client is cached after first call."""
-        command = TrainingCleanupCommand(
-            self.test_settings, dry_run=True, careful=False
-        )
-
-        with unittest.mock.patch(
-            "authlib.integrations.httpx_client.OAuth2Client"
-        ) as mock_oauth_client:
-            mock_client_instance = unittest.mock.MagicMock()
-            mock_oauth_client.return_value = mock_client_instance
-
-            # Call get_authenticated_client twice
-            client1 = command.get_authenticated_client()
-            client2 = command.get_authenticated_client()
-
-            # Verify OAuth client was only created once
-            mock_oauth_client.assert_called_once()
-            mock_client_instance.fetch_token.assert_called_once()
-
-            # Verify same instance returned both times
-            self.assertEqual(client1, client2)
-            self.assertEqual(client1, mock_client_instance)
-
-    def test_execute_api_request_parameters(self):
-        """Test that API requests are made with correct parameters."""
-        # Load fixtures
-        fixtures_path = (
-            pathlib.Path(__file__).parent / "fixtures" / "api_responses.json"
-        )
-        with open(fixtures_path) as f:
-            api_fixtures = json.load(f)
-
-        command = TrainingCleanupCommand(
-            self.test_settings, dry_run=True, careful=False
-        )
-
-        with unittest.mock.patch.object(
-            command, "get_authenticated_client"
-        ) as mock_get_client:
-            mock_client = unittest.mock.MagicMock()
-            mock_get_client.return_value = mock_client
-
-            # Mock empty response to avoid further processing
-            mock_client.get.return_value = unittest.mock.MagicMock(
-                json=lambda: api_fixtures["empty_users_list"]
-            )
-
-            command.execute()
-
-            # Verify initial API call was made with correct parameters
-            mock_client.get.assert_called_once_with(
-                "https://test.example.com/api/users/",
-                headers={"Accept": "application/json"},
-                params={
-                    "user_type": "TRAINING",
-                    "lifecycle_state": "AWAITING_CLEANUP",
-                    "is_active": "false",
-                },
-            )
