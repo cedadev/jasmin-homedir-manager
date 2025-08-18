@@ -6,35 +6,24 @@ authors = [
     {name = "Alex Manning",email = "alexander.manning@stfc.ac.uk"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9,<4"
 dependencies = [
     "authlib (>=1.6.1,<2.0.0)",
-    "httpx (>=0.28.1,<0.29.0)",
+    "httpx (>=0.20.0,<0.29.0)",
     "pydantic-settings (>=2.0.0,<3.0.0)",
-    "click (>=8.0.0,<9.0.0)"
+    "click (>=8.0.0,<9.0.0)",
 ]
-
-[project.optional-dependencies]
-test = []
-typecheck = ["mypy>=1.0.0", "types-Authlib"]
 
 [project.scripts]
 jasmin-homedir-manager = "jasmin_homedir_manager.cli:cli"
 
 [tool.mypy]
 python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
+strict = true
+
+[tool.poetry.group.typecheck.dependencies]
+mypy = "^1.17.1"
+types-authlib = "^1.6.0.20250809"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
