@@ -1,7 +1,10 @@
 import pathlib
+from typing import TypeVar
 
 import pydantic
 import pydantic_settings
+
+SettingsT = TypeVar("SettingsT", bound="Settings")
 
 
 class DataEndpoints(pydantic.BaseModel):
@@ -35,10 +38,10 @@ class Settings(pydantic_settings.BaseSettings):
         )
 
     @classmethod
-    def from_toml(cls, toml_file: str | pathlib.Path) -> "Settings":
+    def from_toml(cls: type[SettingsT], toml_file: str | pathlib.Path) -> SettingsT:
         """Load settings from a specific TOML file."""
 
-        class _SettingsFromToml(cls):
+        class _SettingsFromToml(cls):  # type: ignore[misc, valid-type]
             @classmethod
             def settings_customise_sources(
                 cls,

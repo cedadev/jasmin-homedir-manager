@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import authlib.integrations.httpx_client
 
@@ -14,7 +15,7 @@ class BaseCommand:
         self.settings = settings
         self.dry_run = dry_run
         self.careful = careful
-        self.client = None
+        self.client: Optional[authlib.integrations.httpx_client.OAuth2Client] = None
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def get_authenticated_client(
@@ -35,6 +36,6 @@ class BaseCommand:
 
         return self.client
 
-    def execute(self):
+    def execute(self) -> None:
         """Command logic."""
         raise NotImplementedError

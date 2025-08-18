@@ -12,7 +12,7 @@ from .base import BaseCommand
 class TrainingCleanupCommand(BaseCommand):
     """Command to clean up training user accounts."""
 
-    def execute(self):
+    def execute(self) -> None:
         """Execute the training account cleanup."""
         client = self.get_authenticated_client()
 
@@ -104,7 +104,7 @@ class TrainingCleanupCommand(BaseCommand):
         click.echo(f"{'='*50}")
 
         # Require typing "yes" for destructive operations
-        confirmation = click.prompt(
+        confirmation: str = click.prompt(
             "Type 'yes' to proceed with cleanup, 'skip' to skip, or 'abort' to exit",
             type=click.Choice(["yes", "skip", "abort"], case_sensitive=False),
         )

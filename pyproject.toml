@@ -16,10 +16,25 @@ dependencies = [
 
 [project.optional-dependencies]
 test = []
+typecheck = ["mypy>=1.0.0", "types-Authlib"]
 
 [project.scripts]
 jasmin-homedir-manager = "jasmin_homedir_manager.cli:cli"
 
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

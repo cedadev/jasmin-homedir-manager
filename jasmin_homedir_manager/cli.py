@@ -26,7 +26,7 @@ from .settings import Settings
     help="Prompt before each operation",
 )
 @click.pass_context
-def cli(ctx, settings_file, dry_run, careful):
+def cli(ctx: click.Context, settings_file: str, dry_run: bool, careful: bool) -> None:
     """JASMIN Home Directory Manager."""
     ctx.ensure_object(dict)
     ctx.obj["settings_file"] = settings_file
@@ -46,7 +46,7 @@ def cli(ctx, settings_file, dry_run, careful):
 
 @cli.command()
 @click.pass_context
-def cleanup_training_accounts(ctx):
+def cleanup_training_accounts(ctx: click.Context) -> None:
     """Clean up training user accounts."""
     settings = Settings.from_toml(ctx.obj["settings_file"])
 

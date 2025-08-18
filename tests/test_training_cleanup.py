@@ -7,7 +7,8 @@ import tempfile
 import unittest
 import unittest.mock
 
-from jasmin_homedir_manager.commands.training_cleanup import TrainingCleanupCommand
+from jasmin_homedir_manager.commands.training_cleanup import \
+    TrainingCleanupCommand
 from jasmin_homedir_manager.settings import Settings
 
 
