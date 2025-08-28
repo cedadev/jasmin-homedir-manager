@@ -76,10 +76,8 @@ class TrainingCleanupCommand(BaseCommand):
                         f"[DRY RUN] Would update {user['username']} to NORMAL state"
                     )
                 else:
-                    # Moving to .fast_remove is a special pure feature which will magically destroy the folder instantly.
-                    shutil.move(
-                        home_directory, self.settings.home_dir_folder / ".fast-remove"
-                    )
+                    # Do the delete
+                    shutil.rmtree(home_directory)
 
                     # Make an empty home directory.
                     subprocess.run(

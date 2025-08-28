@@ -28,8 +28,6 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.temp_home_dir = pathlib.Path(self.temp_dir) / "home" / "users"
         self.temp_home_dir.mkdir(parents=True)
-        self.temp_fast_remove = self.temp_home_dir / ".fast-remove"
-        self.temp_fast_remove.mkdir()
 
         self.test_settings = Settings(
             client_id="test_client",
@@ -97,7 +95,7 @@ class TestTrainingCleanupCommand(unittest.TestCase):
             with unittest.mock.patch("subprocess.run") as mock_subprocess:
                 command.execute()
 
-                # Verify directories were moved to .fast-remove
+                # Verify directories were removed
                 self.assertFalse(train_user1_home.exists())
                 self.assertFalse(train_user2_home.exists())
 
