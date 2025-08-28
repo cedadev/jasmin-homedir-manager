@@ -16,13 +16,14 @@ from .settings import Settings
     default="settings.toml",
 )
 @click.option(
-    "--dry-run",
-    is_flag=True,
+    "--dry-run/--no-dry-run",
+    default=True,
     help="Show what would be done without executing",
 )
 @click.option(
-    "--careful",
+    "--careful/--no-careful",
     is_flag=True,
+    default=True,
     help="Prompt before each operation",
 )
 @click.pass_context
