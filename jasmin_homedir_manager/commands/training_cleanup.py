@@ -86,7 +86,7 @@ class TrainingCleanupCommand(BaseCommand):
 
                     # Mark the user as dormant in the portal.
                     response = client.patch(
-                        user["url"], data={"lifecycle_state": "NORMAL"}
+                        user["url"], data={"lifecycle_state": "DORMANT"}
                     )
 
     def confirm_user_cleanup(
