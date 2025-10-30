@@ -14,6 +14,19 @@ It reads data from the JASMIN accounts portal (https://accounts.jasmin.ac.uk)'s 
     * Recreate an empty home directory for the user.
     * Change the user's state in the accounts portal to "DORMANT".
 
+* Remove inactive user accounts.
+  * Inactive user accounts are removed after a period of time being inactive.
+  * Inactive user lifecycle is managed by the accounts portal.
+  * This script will undetake the following seperate actions:
+    1. Quarantine home directories prior to removal.
+        * Get a list of STANDARD users who have been inactive for at least 1 year 3 months (configurable) and who have a lifecycle state of ACCNT_DEL_NOTIFIED.
+        * Move the user's home directory to /home/users/.pending_deletion.
+        * Set the user's lifecycle state in the portal to ACCNT_DEL_HOME_MOVED.
+    2. Remove expired home directories.
+        * Get a list of STANDARD users who have been inactive for at least 1 year 6 months (configurable) and who have a lifecycle state of ACCNT_DEL_HOME_MOVED.
+        * Remove the user's home directory.
+        * Set the user's lifecycle state to ACCNT_DEL_HOME_REMOVED.
+
 ### General Principles
 * Read a list of users who need their data manipulated from the portal API.
 * Backup the user data to be manipulated.
