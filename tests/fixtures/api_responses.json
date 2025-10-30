@@ -51,5 +51,100 @@
       "homeDirectory": "/temp/home/users/train001"
     }
   },
-  "empty_users_list": []
+  "empty_users_list": [],
+  "users_list_inactive_pending_deletion": [
+    {
+      "username": "inactive001",
+      "url": "https://test.example.com/api/users/inactive001/"
+    },
+    {
+      "username": "inactive002",
+      "url": "https://test.example.com/api/users/inactive002/"
+    }
+  ],
+  "users_list_single_inactive_pending_deletion": [
+    {
+      "username": "inactive001",
+      "url": "https://test.example.com/api/users/inactive001/"
+    }
+  ],
+  "user_detail_inactive001": {
+    "username": "inactive001",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/inactive001"
+    }
+  },
+  "user_detail_inactive002": {
+    "username": "inactive002",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/inactive002"
+    }
+  },
+  "user_detail_inactive_recently": {
+    "username": "inactive003",
+    "deactivated_at": "2025-10-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/inactive003"
+    }
+  },
+  "user_detail_inactive_mismatched_home": {
+    "username": "inactive001",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/different/path/inactive001"
+    }
+  },
+  "user_detail_inactive_nonexistent_home": {
+    "username": "inactive001",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/inactive001"
+    }
+  },
+  "users_list_inactive_removal": [
+    {
+      "username": "removal001",
+      "url": "https://test.example.com/api/users/removal001/"
+    },
+    {
+      "username": "removal002",
+      "url": "https://test.example.com/api/users/removal002/"
+    }
+  ],
+  "users_list_single_inactive_removal": [
+    {
+      "username": "removal001",
+      "url": "https://test.example.com/api/users/removal001/"
+    }
+  ],
+  "user_detail_removal001": {
+    "username": "removal001",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/removal001"
+    }
+  },
+  "user_detail_removal002": {
+    "username": "removal002",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/removal002"
+    }
+  },
+  "user_detail_removal_recently": {
+    "username": "removal003",
+    "deactivated_at": "2025-10-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/removal003"
+    }
+  },
+  "user_detail_removal_nonexistent_pending": {
+    "username": "removal001",
+    "deactivated_at": "2023-01-01T00:00:00Z",
+    "account": {
+      "homeDirectory": "/temp/home/users/removal001"
+    }
+  }
 }

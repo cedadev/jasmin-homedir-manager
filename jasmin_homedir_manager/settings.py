@@ -19,6 +19,9 @@ class Settings(pydantic_settings.BaseSettings):
     scopes: list[str]
     token_endpoint: str
     home_dir_folder: pathlib.Path
+    pending_deletion_folder: pathlib.Path
+    pending_deletion_inactive_days: int
+    removal_inactive_days: int
     data_endpoints: DataEndpoints
 
     @classmethod

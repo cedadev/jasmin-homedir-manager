@@ -4,7 +4,8 @@ import logging
 
 import click
 
-from .commands import training_cleanup
+from .commands import (inactive_pending_deletion, inactive_removal,
+                       training_cleanup)
 from .settings import Settings
 
 
@@ -52,6 +53,34 @@ def cleanup_training_accounts(ctx: click.Context) -> None:
     settings = Settings.from_toml(ctx.obj["settings_file"])
 
     command = training_cleanup.TrainingCleanupCommand(
+        settings=settings,
+        dry_run=ctx.obj["dry_run"],
+        careful=ctx.obj["careful"],
+    )
+    command.execute()
+
+
+@cli.command()
+@click.pass_context
+def pending_deletion_inactive_accounts(ctx: click.Context) -> None:
+    """Move inactive user accounts to pending deletion."""
+    settings = Settings.from_toml(ctx.obj["settings_file"])
+
+    command = inactive_pending_deletion.InactivePendingDeletionCommand(
+        settings=settings,
+        dry_run=ctx.obj["dry_run"],
+        careful=ctx.obj["careful"],
+    )
+    command.execute()
+
+
+@cli.command()
+@click.pass_context
+def remove_inactive_accounts(ctx: click.Context) -> None:
+    """Remove inactive user accounts from pending deletion."""
+    settings = Settings.from_toml(ctx.obj["settings_file"])
+
+    command = inactive_removal.InactiveRemovalCommand(
         settings=settings,
         dry_run=ctx.obj["dry_run"],
         careful=ctx.obj["careful"],
