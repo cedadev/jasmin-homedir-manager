@@ -66,6 +66,12 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
             response_data["account"]["homeDirectory"] = homeDirectory
         return response_data
 
+    def make_mock_passwd_entry(self, shell: str = "/usr/sbin/nologin"):
+        """Create a fake passwd entry with the given shell."""
+        mock_entry = unittest.mock.MagicMock()
+        mock_entry.pw_shell = shell
+        return mock_entry
+
     def test_execute_with_inactive_users_success(self):
         """Test successful pending deletion of inactive users."""
         inactive_user1_home = self.create_test_user_home_directory("inactive001")
@@ -88,7 +94,9 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
 
         with unittest.mock.patch.object(
             command, "get_authenticated_client"
-        ) as mock_get_client:
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam", return_value=self.make_mock_passwd_entry()
+        ):
             mock_client = unittest.mock.MagicMock()
             mock_get_client.return_value = mock_client
 
@@ -139,7 +147,9 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
 
         with unittest.mock.patch.object(
             command, "get_authenticated_client"
-        ) as mock_get_client:
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam", return_value=self.make_mock_passwd_entry()
+        ):
             mock_client = unittest.mock.MagicMock()
             mock_get_client.return_value = mock_client
 
@@ -211,7 +221,9 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
 
         with unittest.mock.patch.object(
             command, "get_authenticated_client"
-        ) as mock_get_client:
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam", return_value=self.make_mock_passwd_entry()
+        ):
             mock_client = unittest.mock.MagicMock()
             mock_get_client.return_value = mock_client
 
@@ -244,7 +256,9 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
 
         with unittest.mock.patch.object(
             command, "get_authenticated_client"
-        ) as mock_get_client:
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam", return_value=self.make_mock_passwd_entry()
+        ):
             mock_client = unittest.mock.MagicMock()
             mock_get_client.return_value = mock_client
 
@@ -254,6 +268,75 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
             ]
 
             command.execute()
+
+            mock_client.patch.assert_not_called()
+
+    def test_execute_skips_user_not_in_passwd(self):
+        """Test that users not found in passwd are skipped."""
+        inactive_user_home = self.create_test_user_home_directory("inactive001")
+
+        users_list_response = self.get_mock_api_response(
+            "users_list_single_inactive_pending_deletion"
+        )
+        user_detail_response = self.get_mock_api_response(
+            "user_detail_inactive001", homeDirectory=str(inactive_user_home)
+        )
+
+        command = InactivePendingDeletionCommand(
+            self.test_settings, dry_run=False, careful=False
+        )
+
+        with unittest.mock.patch.object(
+            command, "get_authenticated_client"
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam", side_effect=KeyError("inactive001")
+        ):
+            mock_client = unittest.mock.MagicMock()
+            mock_get_client.return_value = mock_client
+
+            mock_client.get.side_effect = [
+                unittest.mock.MagicMock(json=lambda: users_list_response),
+                unittest.mock.MagicMock(json=lambda: user_detail_response),
+            ]
+
+            command.execute()
+
+            self.assertTrue(inactive_user_home.exists())
+
+            mock_client.patch.assert_not_called()
+
+    def test_execute_skips_user_with_non_nologin_shell(self):
+        """Test that users whose shell is not /usr/sbin/nologin are skipped."""
+        inactive_user_home = self.create_test_user_home_directory("inactive001")
+
+        users_list_response = self.get_mock_api_response(
+            "users_list_single_inactive_pending_deletion"
+        )
+        user_detail_response = self.get_mock_api_response(
+            "user_detail_inactive001", homeDirectory=str(inactive_user_home)
+        )
+
+        command = InactivePendingDeletionCommand(
+            self.test_settings, dry_run=False, careful=False
+        )
+
+        with unittest.mock.patch.object(
+            command, "get_authenticated_client"
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam",
+            return_value=self.make_mock_passwd_entry(shell="/bin/bash"),
+        ):
+            mock_client = unittest.mock.MagicMock()
+            mock_get_client.return_value = mock_client
+
+            mock_client.get.side_effect = [
+                unittest.mock.MagicMock(json=lambda: users_list_response),
+                unittest.mock.MagicMock(json=lambda: user_detail_response),
+            ]
+
+            command.execute()
+
+            self.assertTrue(inactive_user_home.exists())
 
             mock_client.patch.assert_not_called()
 
@@ -339,7 +422,9 @@ class TestInactivePendingDeletionCommand(unittest.TestCase):
 
         with unittest.mock.patch.object(
             command, "get_authenticated_client"
-        ) as mock_get_client:
+        ) as mock_get_client, unittest.mock.patch(
+            "pwd.getpwnam", return_value=self.make_mock_passwd_entry()
+        ):
             mock_client = unittest.mock.MagicMock()
             mock_get_client.return_value = mock_client
 

@@ -2,6 +2,7 @@
 
 import datetime
 import pathlib
+import pwd
 import shutil
 
 import click
@@ -51,6 +52,19 @@ class InactivePendingDeletionCommand(BaseCommand):
                     username,
                     days_inactive,
                     self.settings.pending_deletion_inactive_days,
+                )
+                continue
+
+            # Do not move the home directory if their shell is not /usr/sbin/nologin.
+            # The home directory creation script will recreate it otherwise.
+            try:
+                pwd_user = pwd.getpwnam(username)
+            except KeyError:
+                self.logger.info("Skipping %s, user not found in passwd", username)
+                continue
+            if pwd_user.pw_shell != "/usr/sbin/nologin":
+                self.logger.info(
+                    "Skipping %s, the user's shell is not /usr/sbin/nologin", username
                 )
                 continue
 
