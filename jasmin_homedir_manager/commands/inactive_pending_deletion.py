@@ -11,7 +11,7 @@ from .path_security import validate_path_containment, validate_username
 
 
 class InactivePendingDeletionCommand(BaseCommand):
-    """Command to move inactive user accounts to pending deletion."""
+    """Command to move inactive home directories to pending deletion folder."""
 
     def execute(self) -> None:
         """Execute the inactive account pending deletion."""
