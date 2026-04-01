@@ -62,8 +62,8 @@ def cleanup_training_accounts(ctx: click.Context) -> None:
 
 @cli.command()
 @click.pass_context
-def pending_deletion_inactive_accounts(ctx: click.Context) -> None:
-    """Move inactive user accounts to pending deletion."""
+def move_inactive_home_dirs(ctx: click.Context) -> None:
+    """Move inactive home directories to pending deletion folder."""
     settings = Settings.from_toml(ctx.obj["settings_file"])
 
     command = inactive_pending_deletion.InactivePendingDeletionCommand(
@@ -76,8 +76,8 @@ def pending_deletion_inactive_accounts(ctx: click.Context) -> None:
 
 @cli.command()
 @click.pass_context
-def remove_inactive_accounts(ctx: click.Context) -> None:
-    """Remove inactive user accounts from pending deletion."""
+def remove_inactive_home_dirs(ctx: click.Context) -> None:
+    """Remove inactive home directories permenantly."""
     settings = Settings.from_toml(ctx.obj["settings_file"])
 
     command = inactive_removal.InactiveRemovalCommand(
