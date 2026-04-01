@@ -87,7 +87,7 @@ class InactiveRemovalCommand(BaseCommand):
                 )
             elif not self.confirm_operation(
                 f"User: {username}\nPending Deletion Directory: {pending_deletion_directory}",
-                "removal",
+                "home directory removal",
             ):
                 self.logger.error(
                     "Careful mode enabled and user asked to skip %s", username
