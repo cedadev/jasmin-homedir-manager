@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 import authlib.integrations.httpx_client
+import click
 
 from .. import settings
 
@@ -35,6 +36,30 @@ class BaseCommand:
             self.logger.info("Successfully authenticated with JASMIN API")
 
         return self.client
+
+    def confirm_operation(self, target: str, action: str) -> bool:
+        """
+        Prompt user to confirm an operation in careful mode.
+
+        Returns True if user confirms, False if user skips.
+        """
+        if not self.careful:
+            return True
+
+        click.echo(f"\n{'='*50}")
+        click.echo(target)
+        click.echo(f"{'='*50}")
+
+        confirmation: str = click.prompt(
+            f"Type 'yes' to proceed with {action}, 'skip' to skip, or 'abort' to exit",
+            type=click.Choice(["yes", "skip", "abort"], case_sensitive=False),
+        )
+
+        if confirmation == "abort":
+            click.echo("Operation aborted by user")
+            raise click.Abort()
+
+        return confirmation == "yes"
 
     def execute(self) -> None:
         """Command logic."""

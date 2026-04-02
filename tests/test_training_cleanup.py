@@ -28,6 +28,9 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.temp_home_dir = pathlib.Path(self.temp_dir) / "home" / "users"
         self.temp_home_dir.mkdir(parents=True)
+        self.temp_pending_deletion_dir = (
+            pathlib.Path(self.temp_dir) / "home" / "users" / ".pending_deletion"
+        )
 
         self.test_settings = Settings(
             client_id="test_client",
@@ -35,6 +38,9 @@ class TestTrainingCleanupCommand(unittest.TestCase):
             scopes=["test.scope"],
             token_endpoint="https://test.example.com/oauth/token/",
             home_dir_folder=self.temp_home_dir,
+            pending_deletion_folder=self.temp_pending_deletion_dir,
+            pending_deletion_inactive_days=455,
+            removal_inactive_days=547,
             data_endpoints={"users": "https://test.example.com/api/users/"},
         )
 
@@ -114,11 +120,11 @@ class TestTrainingCleanupCommand(unittest.TestCase):
                 expected_patch_calls = [
                     unittest.mock.call(
                         "https://test.example.com/api/users/train001/",
-                        data={"lifecycle_state": "NORMAL"},
+                        data={"lifecycle_state": "DORMANT"},
                     ),
                     unittest.mock.call(
                         "https://test.example.com/api/users/train002/",
-                        data={"lifecycle_state": "NORMAL"},
+                        data={"lifecycle_state": "DORMANT"},
                     ),
                 ]
                 mock_client.patch.assert_has_calls(expected_patch_calls, any_order=True)
@@ -268,7 +274,9 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         home_dir = pathlib.Path("/home/users/train001")
 
         with unittest.mock.patch("click.prompt", return_value="yes"):
-            result = command.confirm_user_cleanup(user, home_dir, careful=True)
+            result = command.confirm_operation(
+                f"User: {user['username']}\nHome Directory: {home_dir}", "cleanup"
+            )
             self.assertTrue(result)
 
     def test_confirm_user_cleanup_careful_mode_skip(self):
@@ -281,7 +289,9 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         home_dir = pathlib.Path("/home/users/train001")
 
         with unittest.mock.patch("click.prompt", return_value="skip"):
-            result = command.confirm_user_cleanup(user, home_dir, careful=True)
+            result = command.confirm_operation(
+                f"User: {user['username']}\nHome Directory: {home_dir}", "cleanup"
+            )
             self.assertFalse(result)
 
     def test_confirm_user_cleanup_careful_mode_abort(self):
@@ -297,7 +307,9 @@ class TestTrainingCleanupCommand(unittest.TestCase):
 
         with unittest.mock.patch("click.prompt", return_value="abort"):
             with self.assertRaises(click.Abort):
-                command.confirm_user_cleanup(user, home_dir, careful=True)
+                command.confirm_operation(
+                    f"User: {user['username']}\nHome Directory: {home_dir}", "cleanup"
+                )
 
     def test_confirm_user_cleanup_not_careful_mode(self):
         """Test user confirmation when not in careful mode."""
@@ -308,7 +320,9 @@ class TestTrainingCleanupCommand(unittest.TestCase):
         user = {"username": "train001"}
         home_dir = pathlib.Path("/home/users/train001")
 
-        result = command.confirm_user_cleanup(user, home_dir, careful=False)
+        result = command.confirm_operation(
+            f"User: {user['username']}\nHome Directory: {home_dir}", "cleanup"
+        )
         self.assertTrue(result)
 
     def test_execute_with_careful_mode_skip(self):

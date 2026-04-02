@@ -7,6 +7,7 @@ import subprocess
 import click
 
 from .base import BaseCommand
+from .path_security import validate_path_containment, validate_username
 
 
 class TrainingCleanupCommand(BaseCommand):
@@ -33,82 +34,77 @@ class TrainingCleanupCommand(BaseCommand):
             response = client.get(user["url"])
             user_detailed = response.json()
 
+            username = user_detailed["username"]
+
+            if not validate_username(username):
+                self.logger.critical(
+                    "Username validation failed for %s, username contains invalid characters or path traversal sequences.",
+                    username,
+                )
+                continue
+
             # Get the home directory from LDAP, and also guess the home directory path from the username.
             home_directory = pathlib.Path(user_detailed["account"]["homeDirectory"])
-            home_directory_constructed = (
-                self.settings.home_dir_folder / user_detailed["username"]
-            )
+            home_directory_constructed = self.settings.home_dir_folder / username
 
             # Check user is training account.
-            if not user["username"].startswith("train"):
+            if not username.startswith("train"):
                 self.logger.critical(
                     "Did nothing for %s, since the username does not start with train.",
-                    user["username"],
+                    username,
                 )
             # Check home path matches that expected.
             elif home_directory != home_directory_constructed:
                 self.logger.error(
                     "Home directory path check failed for %s. Home directory in LDAP (%s) did not match expected (%s)",
-                    user["username"],
+                    username,
                     home_directory,
                     home_directory_constructed,
                 )
-            # Check home directory is a directory.
-            elif not home_directory.is_dir():
+            elif not validate_path_containment(
+                home_directory_constructed, self.settings.home_dir_folder
+            ):
                 self.logger.error(
-                    "Home directory did not exist for %s", user["username"]
+                    "Path containment validation failed for %s. Resolved path (%s) is not within expected directory (%s)",
+                    username,
+                    home_directory_constructed.resolve(),
+                    self.settings.home_dir_folder.resolve(),
+                )
+            # Check home directory is a directory.
+            elif not home_directory_constructed.is_dir():
+                self.logger.error("Home directory did not exist for %s", username)
+            elif home_directory_constructed.is_symlink():
+                self.logger.error(
+                    "Home directory is a symlink for %s. This is not allowed for security reasons.",
+                    username,
                 )
             # Check if careful mode is enabled and confirm with user.
-            elif not self.confirm_user_cleanup(user, home_directory, self.careful):
+            elif not self.confirm_operation(
+                f"User: {username}\nHome Directory: {home_directory_constructed}",
+                "cleanup",
+            ):
                 self.logger.error(
-                    "Careful mode enabled and user asked to skip %s", user["username"]
+                    "Careful mode enabled and user asked to skip %s", username
                 )
             else:
                 # This is the main logic.
-                self.logger.info("Removing home directory %s", home_directory)
+                self.logger.info(
+                    "Removing home directory %s", home_directory_constructed
+                )
 
                 if self.dry_run:
-                    click.echo(f"[DRY RUN] Would move {home_directory} to .fast-remove")
-                    click.echo(
-                        f"[DRY RUN] Would create empty home for {user['username']}"
-                    )
-                    click.echo(
-                        f"[DRY RUN] Would update {user['username']} to NORMAL state"
-                    )
+                    click.echo(f"[DRY RUN] Would remove {home_directory_constructed}")
+                    click.echo(f"[DRY RUN] Would create empty home for {username}")
+                    click.echo(f"[DRY RUN] Would update {username} to DORMANT state")
                 else:
-                    # Do the delete
-                    shutil.rmtree(home_directory)
+                    shutil.rmtree(home_directory_constructed)
 
                     # Make an empty home directory.
                     subprocess.run(
-                        ["/usr/sbin/mkhomedir_helper", user["username"]], check=False
+                        ["/usr/sbin/mkhomedir_helper", username], check=False
                     )
 
                     # Mark the user as dormant in the portal.
                     response = client.patch(
                         user["url"], data={"lifecycle_state": "DORMANT"}
                     )
-
-    def confirm_user_cleanup(
-        self, user: dict, home_dir: pathlib.Path, careful: bool
-    ) -> bool:
-        """Safe confirmation for user cleanup operations."""
-        if not careful:
-            return True
-
-        click.echo(f"\n{'='*50}")
-        click.echo(f"User: {user['username']}")
-        click.echo(f"Home Directory: {home_dir}")
-        click.echo(f"{'='*50}")
-
-        # Require typing "yes" for destructive operations
-        confirmation: str = click.prompt(
-            "Type 'yes' to proceed with cleanup, 'skip' to skip, or 'abort' to exit",
-            type=click.Choice(["yes", "skip", "abort"], case_sensitive=False),
-        )
-
-        if confirmation == "abort":
-            click.echo("Operation aborted by user")
-            raise click.Abort()
-
-        return confirmation == "yes"
